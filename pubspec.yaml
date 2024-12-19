@@ -1,0 +1,29 @@
+name: journal_ai
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0-313.0.dev
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  table_calendar: ^3.0.9
+  intl: ^0.18.1
+  sqflite: ^2.3.0
+  sqflite_common_ffi_web: ^0.4.2+3
+  path: ^1.8.3
+  image_picker: ^1.0.4
+  file_picker: ^5.5.0
+  path_provider: ^2.1.1
+  permission_handler: ^10.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
