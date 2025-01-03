@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'screens/calendar_screen.dart';
 import 'screens/journal_entry_screen.dart';
-import 'widgets/image_calendar.dart';
+import 'package:journal_ai/widgets/image_calendar.dart';
+import '../utils/database_helper.dart';
+import 'dart:convert';
 
 void main() {
   runApp(const JournalifeApp());
@@ -41,7 +42,7 @@ class _MainScreenState extends State<MainScreen> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
-    CalendarScreen(),
+    ImageCalendar(),
   ];
 
   void _onItemTapped(int index) {
@@ -78,11 +79,87 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Map<String, dynamic>> entries = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEntries();
+  }
+
+  Future<void> _loadEntries() async {
+    final dbEntries = await DatabaseHelper.instance.getEntries();
+    setState(() {
+      entries = dbEntries.map((entry) => {
+        'id': entry['id'],
+        'title': entry['title'],
+        'body': entry['body'],
+        'date': entry['date'],
+      }).toList();
+    });
+  }
+
+  Future<void> _navigateAndAddEntry(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => JournalEntryScreen(selectedDate: DateTime.now()),
+      ),
+    );
+
+    if (result != null) {
+      _loadEntries(); // Refresh entries from database
+    }
+  }
+
+  Future<void> _navigateAndEditEntry(BuildContext context, Map<String, dynamic> entry) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => JournalEntryScreen(
+          selectedDate: DateTime.parse(entry['date']),
+        ),
+      ),
+    );
+
+    if (result == true) {
+      _loadEntries(); // Refresh entries after edit
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const ImageCalendar();
+    return Column(
+      children: [
+        ElevatedButton(
+          onPressed: () => _navigateAndAddEntry(context),
+          child: const Text('Add Entry'),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: entries.length,
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              return Card(
+                margin: const EdgeInsets.all(8.0),
+                child: ListTile(
+                  title: Text(entry['title'] ?? 'No Title'),
+                  subtitle: Text('${entry['body']}\n${entry['date']}'),
+                  onTap: () => _navigateAndEditEntry(context, entry), // Make the card clickable
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
